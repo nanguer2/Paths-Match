@@ -6,19 +6,19 @@ import { Home, RotateCcw, Moon, Sun, Volume2, VolumeX, Lock, Play, ChevronRight 
 const LEVELS = [
   {
     id: 0,
-    title: 'Vehículos Terrestres',
+    title: 'Land vehicles',
     icon: '🚗',
     emojis: ['🚗', '🚜', '🚌', '🚒', '🚃', '🚚'],
   },
   {
     id: 1,
-    title: 'Vehículos Marítimos',
+    title: 'Maritime vehicles',
     icon: '🚢',
     emojis: ['⛵', '🛳️', '🚤', '⛴️', '🛥️', '🚢'],
   },
   {
     id: 2,
-    title: 'Vehículos Aéreos',
+    title: 'Air vehicles',
     icon: '✈️',
     emojis: ['✈️', '🚁', '🛩️', '🚀', '🛰️', '🛸'],
   }
