@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Paths</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+
+    <!-- Custom CSS for 3D and Animations -->
+    <style>
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+        .animate-fall {
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        @keyframes scaleUp {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-scale-up {
+            animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+        .animate-pulse-slow {
+            animation: pulseSlow 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans transition-colors duration-300 bg-sky-50 text-gray-800 dark:bg-gray-900 dark:text-white">
+
+    <!-- GLOBAL HEADER -->
+    <header class="flex items-center justify-between p-4 shadow-sm bg-white dark:bg-gray-800 transition-colors">
+        <div class="flex items-center gap-2" id="header-left">
+            <!-- Buttons injected by JS -->
+        </div>
+        
+        <h1 class="text-xl md:text-2xl font-black tracking-tight text-center hidden sm:block">
+            <span class="text-blue-500">Match</span> <span class="text-emerald-500">Paths</span>
+        </h1>
+        
+        <div class="flex items-center gap-2">
+            <button onclick="toggleMute()" class="p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700" title="Activar/Silenciar sonido" id="btn-mute">
+                <!-- Icono de Volumen -->
+            </button>
+            <button onclick="toggleTheme()" class="p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700" title="Cambiar tema" id="btn-theme">
+                <!-- Icono de Tema -->
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto max-w-4xl px-4 py-2 flex flex-col items-center justify-center h-[calc(100vh-70px)] overflow-hidden">
+        
+        <!-- HOME SCREEN -->
+        <div id="screen-home" class="flex flex-col items-center animate-fade-in w-full hidden">
+            <div class="text-center mb-10">
+                <h2 class="text-5xl md:text-7xl font-black mb-4 tracking-tighter">
+                    <span class="text-blue-500 drop-shadow-sm">Match</span> <span class="text-emerald-500 drop-shadow-sm">Paths</span>
+                </h2>
+                <p class="text-lg md:text-xl italic font-medium text-gray-600 dark:text-gray-300">
+                    ¡Encuentra los pares y tu camino por aire, mar y tierra!
+                </p>
+            </div>
+            <div id="levels-container" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
+                <!-- Nivel 1, 2, 3 inyectados aquí -->
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="screen-game" class="flex flex-col items-center w-full max-w-3xl animate-fade-in hidden">
+            <!-- Stats Bar -->
+            <div class="w-full flex justify-between items-center mb-2 p-4 rounded-2xl shadow-sm bg-white dark:bg-gray-800">
+                <div class="text-lg font-bold">
+                    Nivel: <span id="current-level-title" class="text-blue-500"></span>
+                </div>
+                <div class="flex gap-6 text-lg font-bold">
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs uppercase text-gray-500 tracking-wider">Intentos</span>
+                        <span id="stat-attempts">0</span>
+                    </div>
+                    <div class="flex flex-col items-center">
+                        <span class="text-xs uppercase text-gray-500 tracking-wider">Tiempo</span>
+                        <span id="stat-time">00:00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Micromessage Area -->
+            <div class="h-8 mb-2 w-full flex items-center justify-center">
+                <div id="msg-bubble" class="px-6 py-2 rounded-full font-bold text-lg animate-bounce shadow-md hidden">
+                </div>
+            </div>
+
+            <!-- Game Grid -->
+            <div id="game-grid" class="grid grid-cols-3 md:grid-cols-4 gap-2 md:gap-3 w-full max-h-[60vh] aspect-square md:aspect-video">
+                <!-- Cartas inyectadas aquí -->
+            </div>
+            <p class="mt-2 text-sm md:text-base text-center text-gray-500 dark:text-gray-400">
+                Puedes descubrir hasta 3 cartas a la vez. ¡Encuentra los pares para completar el nivel!
+            </p>
+        </div>
+
+        <!-- WIN SCREEN -->
+        <div id="screen-win" class="fixed inset-0 z-40 flex items-center justify-center hidden">
+            <div class="absolute inset-0 bg-yellow-500/30 dark:bg-yellow-600/40 backdrop-blur-sm animate-pulse-slow"></div>
+            <div id="confetti-container" class="absolute inset-0 pointer-events-none overflow-hidden z-50"></div>
+            
+            <div class="relative z-50 flex flex-col items-center p-10 md:p-14 rounded-3xl shadow-2xl animate-scale-up text-center max-w-lg mx-4 bg-white text-gray-800 border-4 border-yellow-400 dark:bg-gray-800 dark:text-white dark:border-yellow-500/30">
+                <h2 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 mb-2 leading-relaxed py-2">
+                    ¡Felicidades!
+                </h2>
+                <p class="text-xl mb-8 font-medium">Nivel Completado</p>
+                
+                <div class="flex gap-8 mb-10 text-lg">
+                    <div class="flex flex-col">
+                        <span class="text-gray-500 text-sm uppercase font-bold">Intentos</span>
+                        <span id="win-attempts" class="font-black text-2xl">0</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-gray-500 text-sm uppercase font-bold">Tiempo</span>
+                        <span id="win-time" class="font-black text-2xl">00:00</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 w-full">
+                    <button onclick="initGame(currentLevelId)" class="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-bold text-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Jugar de nuevo
+                    </button>
+                    
+                    <button id="btn-next-level" onclick="initGame(currentLevelId + 1)" class="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-bold text-lg bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 transition-all hover:-translate-y-1 hidden">
+                        Siguiente Nivel
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                    </button>
+
+                    <button id="btn-home-win" onclick="setScreen('home')" class="flex-1 flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-bold text-lg bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/30 transition-all hover:-translate-y-1 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Menú Principal
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- GAME LOGIC -->
+    <script>
+        // --- ICONS (SVG Strings) ---
+        const ICONS = {
+            home: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+            rotate: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>`,
+            sun: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
+            moon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`,
+            vol2: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`,
+            volX: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="1" x2="1" y2="23"/><line x1="22" y1="9" x2="16" y2="15"/><line x1="16" y1="9" x2="22" y2="15"/></svg>`,
+            lock: `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+        };
+
+        // --- CONFIGURATION & DATA ---
+        const LEVELS = [
+            { id: 0, title: 'Vehículos Terrestres', icon: '🚗', emojis: ['🚗', '🚜', '🚌', '🚒', '🚃', '🚚'] },
+            { id: 1, title: 'Vehículos Marítimos', icon: '🚢', emojis: ['⛵', '🛳️', '🚤', '⛴️', '🛥️', '🚢'] },
+            { id: 2, title: 'Vehículos Aéreos', icon: '✈️', emojis: ['✈️', '🚁', '🛩️', '🚀', '🛰️', '🛸'] }
+        ];
+
+        const MOTIVATION_MSGS = ["¡Tú puedes!", "¡Lo lograrás!", "¡Sigue intentando!", "¡Por muy poco!", "¡Casi lo tienes!", "¡Sigue así!", "¡No te rindas!"];
+        const CELEBRATION_MSGS = ["¡Genial!", "¡Lo hiciste!", "¡Increíble!", "¡Fantástico!", "¡Impresionante!", "¡Exacto!", "¡Pareja perfecta!"];
+
+        // --- AUDIO SYNTHESIZER ---
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.bgmGain = null;
+                this.isPlayingBGM = false;
+                this.isMuted = false;
+                this.bgmInterval = null;
+            }
+            init() {
+                if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                if (this.ctx.state === 'suspended') this.ctx.resume();
+            }
+            setMute(mute) {
+                this.isMuted = mute;
+                if (this.bgmGain && this.ctx) {
+                    this.bgmGain.gain.setTargetAtTime(mute ? 0 : 0.05, this.ctx.currentTime, 0.1);
+                }
+            }
+            playTone(freq, type, duration, vol = 0.1) {
+                if (this.isMuted || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + duration);
+            }
+            flip() { this.init(); this.playTone(300, 'sine', 0.1, 0.1); }
+            match() {
+                this.init();
+                if (this.isMuted || !this.ctx) return;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 'sine', 0.3, 0.1), i * 50);
+                });
+            }
+            fail() {
+                this.init();
+                if (this.isMuted || !this.ctx) return;
+                this.playTone(150, 'sawtooth', 0.3, 0.1);
+                setTimeout(() => this.playTone(100, 'sawtooth', 0.4, 0.1), 150);
+            }
+            win() {
+                this.init();
+                if (this.isMuted || !this.ctx) return;
+                [440, 554.37, 659.25, 880].forEach((freq, i) => {
+                    setTimeout(() => this.playTone(freq, 'square', 0.4, 0.1), i * 150);
+                });
+            }
+            startBGM() {
+                this.init();
+                if (this.isPlayingBGM || !this.ctx) return;
+                this.bgmGain = this.ctx.createGain();
+                this.bgmGain.gain.value = this.isMuted ? 0 : 0.05;
+                this.bgmGain.connect(this.ctx.destination);
+                this.isPlayingBGM = true;
+
+                const melody = [261.63, 329.63, 392.00, 329.63, 440.00, 392.00, 329.63, 261.63];
+                const duration = 0.4;
+                let noteIdx = 0;
+                
+                const playNext = () => {
+                    if (!this.isPlayingBGM) return;
+                    const osc = this.ctx.createOscillator();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(melody[noteIdx], this.ctx.currentTime);
+                    const noteGain = this.ctx.createGain();
+                    noteGain.gain.setValueAtTime(1, this.ctx.currentTime);
+                    noteGain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + duration - 0.05);
+                    osc.connect(noteGain);
+                    noteGain.connect(this.bgmGain);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                    noteIdx = (noteIdx + 1) % melody.length;
+                };
+                
+                playNext();
+                this.bgmInterval = setInterval(playNext, duration * 1000);
+            }
+        }
+        const sfx = new SoundFX();
+
+        // --- GAME STATE ---
+        let isDark = false;
+        let isMuted = false;
+        let currentScreen = 'home';
+        let unlockedLevels = [0];
+        let currentLevelId = 0;
+        let cards = [];
+        let openCards = [];
+        let isLocked = false;
+        let attempts = 0;
+        let time = 0;
+        let timerInterval = null;
+
+        // --- INIT UI ---
+        document.getElementById('btn-theme').innerHTML = ICONS.moon;
+        document.getElementById('btn-mute').innerHTML = ICONS.vol2;
+        updateHeaderButtons();
+        renderHome();
+        setScreen('home');
+
+        // --- FUNCTIONS ---
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.classList.toggle('dark', isDark);
+            document.getElementById('btn-theme').innerHTML = isDark ? ICONS.sun : ICONS.moon;
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            sfx.setMute(isMuted);
+            document.getElementById('btn-mute').innerHTML = isMuted ? ICONS.volX : ICONS.vol2;
+        }
+
+        function setScreen(screenName) {
+            currentScreen = screenName;
+            document.getElementById('screen-home').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-win').classList.add('hidden');
+            
+            document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+            updateHeaderButtons();
+
+            if (screenName === 'home') renderHome();
+            if (screenName !== 'game') stopTimer();
+        }
+
+        function updateHeaderButtons() {
+            const container = document.getElementById('header-left');
+            container.innerHTML = '';
+            
+            if (currentScreen !== 'home') {
+                const btnHome = document.createElement('button');
+                btnHome.className = "p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700";
+                btnHome.title = "Home";
+                btnHome.innerHTML = ICONS.home;
+                btnHome.onclick = () => setScreen('home');
+                container.appendChild(btnHome);
+            }
+            if (currentScreen === 'game') {
+                const btnRestart = document.createElement('button');
+                btnRestart.className = "p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-700";
+                btnRestart.title = "Reiniciar";
+                btnRestart.innerHTML = ICONS.rotate;
+                btnRestart.onclick = () => initGame(currentLevelId);
+                container.appendChild(btnRestart);
+            }
+        }
+
+        function renderHome() {
+            const container = document.getElementById('levels-container');
+            container.innerHTML = '';
+            
+            LEVELS.forEach(level => {
+                const isUnlocked = unlockedLevels.includes(level.id);
+                const btn = document.createElement('button');
+                
+                let classes = "relative group flex flex-col items-center justify-center p-8 rounded-3xl aspect-square transition-all duration-300 ";
+                if (isUnlocked) {
+                    classes += "bg-white hover:bg-blue-50 shadow-xl hover:-translate-y-2 cursor-pointer ring-2 ring-transparent hover:ring-blue-300 dark:bg-gray-800 dark:hover:bg-gray-700";
+                    btn.onclick = () => initGame(level.id);
+                } else {
+                    classes += "bg-gray-200 opacity-80 cursor-not-allowed dark:bg-gray-800/50 dark:opacity-75";
+                    btn.disabled = true;
+                }
+                btn.className = classes;
+
+                let innerHTML = `
+                    <div class="text-7xl md:text-8xl mb-4 transform transition-transform group-hover:scale-110">${level.icon}</div>
+                    <h3 class="text-xl font-bold text-gray-800 dark:text-white">${level.title}</h3>
+                `;
+
+                if (!isUnlocked) {
+                    innerHTML += `
+                    <div class="absolute inset-0 bg-black/10 backdrop-blur-[2px] rounded-3xl flex items-center justify-center">
+                        <div class="p-4 rounded-full bg-white text-gray-500 shadow-lg dark:bg-gray-900 dark:text-gray-400">
+                            ${ICONS.lock}
+                        </div>
+                    </div>`;
+                }
+                btn.innerHTML = innerHTML;
+                container.appendChild(btn);
+            });
+        }
+
+        function initGame(levelId) {
+            sfx.init();
+            sfx.startBGM();
+            
+            currentLevelId = levelId;
+            const levelData = LEVELS[levelId];
+            
+            // Shuffle
+            const paired = [...levelData.emojis, ...levelData.emojis];
+            cards = paired.sort(() => Math.random() - 0.5).map((emoji, index) => ({
+                id: index, emoji, isFlipped: false, isMatched: false, isJustMatched: false
+            }));
+            
+            openCards = [];
+            attempts = 0;
+            time = 0;
+            isLocked = false;
+            
+            document.getElementById('current-level-title').innerText = levelData.title;
+            updateStatsDOM();
+            hideMessage();
+            renderGrid();
+            setScreen('game');
+            startTimer();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('game-grid');
+            // Usamos el parámetro ?raw=true para que GitHub entregue la imagen real
+            const logoUrl = "https://github.com/nanguer2/MatchPaths/blob/main/MatchPaths-esp.png?raw=true";
+
+            grid.innerHTML = cards.map((card, index) => `
+                <div class="relative cursor-pointer perspective-1000 w-full h-full" onclick="handleCardClick(${index})">
+                    <div id="card-inner-${index}" class="w-full h-full transition-transform duration-500 transform-style-3d">
+                        <div class="absolute inset-0 backface-hidden rounded-2xl shadow-md border-b-4 border-r-4 bg-blue-500 border-blue-700 hover:bg-blue-400 dark:bg-blue-900 dark:border-blue-950 dark:hover:bg-blue-800 flex items-center justify-center overflow-hidden p-2">
+                            <img src="${logoUrl}" alt="Logo" class="w-full h-full object-contain pointer-events-none">
+                        </div>
+                        <div id="card-back-${index}" class="absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-inner border-2 flex items-center justify-center text-5xl md:text-7xl transition-all duration-300 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600">
+                            ${card.emoji}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCardDOM(index) {
+            const card = cards[index];
+            const inner = document.getElementById(`card-inner-${index}`);
+            const back = document.getElementById(`card-back-${index}`);
+            
+            if (!inner || !back) return;
+
+            if (card.isFlipped || card.isMatched) {
+                inner.classList.add('rotate-y-180');
+            } else {
+                inner.classList.remove('rotate-y-180');
+            }
+
+            // Reset back classes
+            back.className = "absolute inset-0 backface-hidden rotate-y-180 rounded-2xl shadow-inner border-2 flex items-center justify-center text-5xl md:text-7xl transition-all duration-300 bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-600";
+            
+            if (card.isJustMatched) {
+                back.classList.add('ring-4', 'ring-emerald-500', '!bg-emerald-100', 'border-transparent', 'scale-105', 'z-10');
+            } else if (card.isMatched) {
+                back.classList.add('opacity-80', 'scale-95', 'ring-2', 'ring-emerald-500/50');
+            }
+        }
+
+        function handleCardClick(index) {
+            if (isLocked) return;
+            if (cards[index].isFlipped || cards[index].isMatched) return;
+
+            sfx.flip();
+            cards[index].isFlipped = true;
+            updateCardDOM(index);
+            
+            openCards.push(index);
+
+            if (openCards.length === 2) {
+                const [idx1, idx2] = openCards;
+                if (cards[idx1].emoji === cards[idx2].emoji) {
+                    handleMatch([idx1, idx2], []);
+                }
+            } else if (openCards.length === 3) {
+                isLocked = true;
+                attempts++;
+                updateStatsDOM();
+                
+                const [idx1, idx2, idx3] = openCards;
+                const v1 = cards[idx1].emoji;
+                const v2 = cards[idx2].emoji;
+                const v3 = cards[idx3].emoji;
+                
+                let matchPair = null;
+                let leftOver = null;
+                
+                if (v1 === v2) { matchPair = [idx1, idx2]; leftOver = idx3; }
+                else if (v1 === v3) { matchPair = [idx1, idx3]; leftOver = idx2; }
+                else if (v2 === v3) { matchPair = [idx2, idx3]; leftOver = idx1; }
+
+                if (matchPair) {
+                    handleMatch(matchPair, [leftOver]);
+                } else {
+                    sfx.fail();
+                    showMessage('motivation');
+                    setTimeout(() => {
+                        openCards.forEach(idx => {
+                            cards[idx].isFlipped = false;
+                            updateCardDOM(idx);
+                        });
+                        openCards = [];
+                        isLocked = false;
+                    }, 1000);
+                }
+            }
+        }
+
+        function handleMatch(matchedIndices, leftoverIndices) {
+            isLocked = true;
+            sfx.match();
+            showMessage('success');
+            
+            matchedIndices.forEach(idx => {
+                cards[idx].isJustMatched = true;
+                updateCardDOM(idx);
+            });
+
+            setTimeout(() => {
+                matchedIndices.forEach(idx => {
+                    cards[idx].isJustMatched = false;
+                    cards[idx].isMatched = true;
+                    updateCardDOM(idx);
+                });
+                
+                leftoverIndices.forEach(idx => {
+                    cards[idx].isFlipped = false;
+                    updateCardDOM(idx);
+                });
+                
+                openCards = [];
+                setTimeout(checkWinCondition, 100);
+            }, 800);
+        }
+
+        function checkWinCondition() {
+            if (cards.every(c => c.isMatched)) {
+                handleWin();
+            } else {
+                isLocked = false;
+            }
+        }
+
+        function handleWin() {
+            stopTimer();
+            sfx.win();
+            if (!unlockedLevels.includes(currentLevelId + 1) && currentLevelId < 2) {
+                unlockedLevels.push(currentLevelId + 1);
+            }
+            
+            document.getElementById('win-attempts').innerText = attempts;
+            document.getElementById('win-time').innerText = formatTime(time);
+            
+            const btnNext = document.getElementById('btn-next-level');
+            const btnHome = document.getElementById('btn-home-win');
+            
+            if (currentLevelId < 2) {
+                btnNext.classList.remove('hidden');
+                btnHome.classList.add('hidden');
+            } else {
+                btnNext.classList.add('hidden');
+                btnHome.classList.remove('hidden');
+            }
+
+            renderConfetti();
+            setScreen('win');
+        }
+
+        // --- UTILS & HELPERS ---
+        function startTimer() {
+            stopTimer();
+            timerInterval = setInterval(() => {
+                if (!isLocked && currentScreen === 'game') {
+                    time++;
+                    updateStatsDOM();
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+        }
+
+        function formatTime(secs) {
+            const m = Math.floor(secs / 60).toString().padStart(2, '0');
+            const s = (secs % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function updateStatsDOM() {
+            document.getElementById('stat-attempts').innerText = attempts;
+            document.getElementById('stat-time').innerText = formatTime(time);
+        }
+
+        let msgTimeout = null;
+        function showMessage(type) {
+            const bubble = document.getElementById('msg-bubble');
+            const list = type === 'success' ? CELEBRATION_MSGS : MOTIVATION_MSGS;
+            const text = list[Math.floor(Math.random() * list.length)];
+            
+            bubble.innerText = text;
+            bubble.className = "px-6 py-2 rounded-full font-bold text-lg animate-bounce shadow-md";
+            
+            if (type === 'success') {
+                bubble.classList.add('bg-emerald-100', 'text-emerald-700', 'border-2', 'border-emerald-300');
+            } else {
+                bubble.classList.add('bg-blue-100', 'text-blue-700', 'border-2', 'border-blue-300');
+            }
+            
+            bubble.classList.remove('hidden');
+            
+            if (msgTimeout) clearTimeout(msgTimeout);
+            msgTimeout = setTimeout(hideMessage, 2000);
+        }
+
+        function hideMessage() {
+            document.getElementById('msg-bubble').classList.add('hidden');
+        }
+
+        function renderConfetti() {
+            const container = document.getElementById('confetti-container');
+            container.innerHTML = '';
+            const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+            
+            for (let i = 0; i < 50; i++) {
+                const div = document.createElement('div');
+                div.className = 'absolute w-3 h-3 animate-fall';
+                div.style.left = `${Math.random() * 100}%`;
+                div.style.top = `-10%`;
+                div.style.backgroundColor = colors[Math.floor(Math.random() * 5)];
+                div.style.animationDuration = `${Math.random() * 2 + 1}s`;
+                div.style.animationDelay = `${Math.random() * 1}s`;
+                div.style.transform = `rotate(${Math.random() * 360}deg)`;
+                container.appendChild(div);
+            }
+        }
+    </script>
+</body>
+</html>
