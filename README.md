@@ -1,6 +1,6 @@
-# **Patchs Match: Find your way in air, sea & land\! 🚗🚢✈️**
+# **Match Paths: Find your way in air, sea & land\! 🚗🚢✈️**
 
-**Patchs Match** es un microjuego interactivo de entrenamiento cognitivo diseñado para mejorar la concentración y la memoria a corto plazo. A través de una experiencia lúdica y visualmente atractiva, los usuarios deben emparejar diferentes tipos de vehículos en tres niveles temáticos progresivos.
+**Match Paths** es un microjuego interactivo de entrenamiento cognitivo diseñado para mejorar la concentración y la memoria a corto plazo. A través de una experiencia lúdica y visualmente atractiva, los usuarios deben emparejar diferentes tipos de vehículos en tres niveles temáticos progresivos.
 
 ## **🎮 Características del Juego**
 
@@ -36,7 +36,7 @@
 Si deseas probar el proyecto localmente:
 
 1. Clona el repositorio:  
-   git clone \[https://github.com/tu-usuario/patchs-match.git\](https://github.com/tu-usuario/patchs-match.git)
+   git clone \[https://github.com/tu-usuario/match-paths.git\](https://github.com/tu-usuario/match-paths.git)
 
 2. Instala las dependencias:  
    npm install
