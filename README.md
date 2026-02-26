@@ -5,9 +5,11 @@
 ## **🎮 Características del Juego**
 
 * **Sistema de Progresión:** Tres niveles de dificultad temática:  
+
   **Vehículos Terrestres:** (Desbloqueado por defecto) 🚗  
   **Vehículos Marítimos:** (Se desbloquea tras superar el Nivel 1\) 🚢  
   **Vehículos Aéreos:** (Se desbloquea tras superar el Nivel 2\) ✈️  
+
 * **Mecánica de Juego Avanzada:** Permite descubrir hasta **3 cartas simultáneamente**. Si hay un par dentro de las 3, se valida y se mantiene visible, optimizando el flujo de juego.  
 * **Feedback Inmediato:** Efectos visuales de resaltado verde para aciertos, sonido envolvente y mensajes motivadores dinámicos.  
 * **Ambiente Personalizable:** \- Botón de **Modo Oscuro/Claro** para mayor comodidad visual.  
