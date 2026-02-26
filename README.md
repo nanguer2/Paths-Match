@@ -38,7 +38,7 @@
 Si deseas probar el proyecto localmente:
 
 1. Clona el repositorio:  
-   git clone \[https://github.com/tu-usuario/match-paths.git\](https://github.com/tu-usuario/match-paths.git)
+   git clone [\[https://github.com/nanguer2/MatchPaths.git\](https://github.com/tu-usuario/MatchPaths.git)](https://github.com/nanguer2/MatchPaths.git)
 
 2. Instala las dependencias:  
    npm install
