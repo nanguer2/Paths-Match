@@ -326,7 +326,11 @@
             document.getElementById(`screen-${screenName}`).classList.remove('hidden');
             updateHeaderButtons();
 
-            if (screenName === 'home') renderHome();
+            if (screenName === 'home') {
+                renderHome();
+                // Intentar iniciar la música al volver o entrar a home
+                sfx.startBGM(); 
+            }
             if (screenName !== 'game') stopTimer();
         }
 

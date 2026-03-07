@@ -190,9 +190,9 @@
 
         // --- CONFIGURATION & DATA ---
         const LEVELS = [
-            { id: 0, title: 'Vehículos Terrestres', icon: '🚗', emojis: ['🚗', '🚜', '🚌', '🚒', '🚃', '🚚'] },
-            { id: 1, title: 'Vehículos Marítimos', icon: '🚢', emojis: ['⛵', '🛳️', '🚤', '⛴️', '🛥️', '🚢'] },
-            { id: 2, title: 'Vehículos Aéreos', icon: '✈️', emojis: ['✈️', '🚁', '🛩️', '🚀', '🛰️', '🛸'] }
+            { id: 0, title: 'Terrestres', icon: '🚗', emojis: ['🚗', '🚜', '🚌', '🚒', '🚃', '🚚'] },
+            { id: 1, title: 'Marítimos', icon: '🚢', emojis: ['⛵', '🛳️', '🚤', '⛴️', '🛥️', '🚢'] },
+            { id: 2, title: 'Aéreos', icon: '✈️', emojis: ['✈️', '🚁', '🛩️', '🚀', '🛰️', '🛸'] }
         ];
 
         const MOTIVATION_MSGS = ["¡Tú puedes!", "¡Lo lograrás!", "¡Sigue intentando!", "¡Por muy poco!", "¡Casi lo tienes!", "¡Sigue así!", "¡No te rindas!"];
@@ -326,7 +326,11 @@
             document.getElementById(`screen-${screenName}`).classList.remove('hidden');
             updateHeaderButtons();
 
-            if (screenName === 'home') renderHome();
+            if (screenName === 'home') {
+                renderHome();
+                // Intentar iniciar la música al volver o entrar a home
+                sfx.startBGM(); 
+            }
             if (screenName !== 'game') stopTimer();
         }
 
